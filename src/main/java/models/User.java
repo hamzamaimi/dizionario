@@ -2,7 +2,6 @@ package models;
 
 import jakarta.persistence.*;
 
-import java.math.BigInteger;
 import java.sql.Date;
 
 @Entity
@@ -12,36 +11,36 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false, nullable = false)
     private int id;
-    @Column(name = "nome", nullable = false)
-    private String nome;
-    @Column(name = "cognome", nullable = false)
-    private String cognome;
-    @Column(name = "mail", nullable = false)
-    private String mail;
+    @Column(name = "name", nullable = false)
+    private String name;
+    @Column(name = "surname", nullable = false)
+    private String surname;
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
     @Column(name = "password", nullable = false)
     private String password;
     @Column(name = "token", nullable = true)
     private String token;
-    @Column(name = "dataCreazioneToken", nullable = true)
-    private Date dataCreazioneToken;
+    @Column(name = "tokenCreationDate", nullable = true)
+    private Date tokenCreationDate;
 
 
 
     public User() {}
 
-    public User(String nome, String cognome, String mail, String password) {
-        this.nome = nome;
-        this.cognome = cognome;
-        this.mail = mail;
+    public User(String name, String surname, String email, String password) {
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
         this.password = password;
     }
 
-    public Date getDataCreazioneToken() {
-        return dataCreazioneToken;
+    public Date getTokenCreationDate() {
+        return tokenCreationDate;
     }
 
-    public void setDataCreazioneToken(Date creazioneToken) {
-        this.dataCreazioneToken = creazioneToken;
+    public void setTokenCreationDate(Date tokenCreationDate) {
+        this.tokenCreationDate = tokenCreationDate;
     }
 
     public String getToken() {
@@ -52,28 +51,28 @@ public class User {
         this.token = token;
     }
 
-    public String getNome() {
-        return nome;
+    public String getName() {
+        return name;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getCognome() {
-        return cognome;
+    public String getSurname() {
+        return surname;
     }
 
-    public void setCognome(String cognome) {
-        this.cognome = cognome;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
-    public String getMail() {
-        return mail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {

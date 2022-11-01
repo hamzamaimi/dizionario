@@ -7,8 +7,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
+import org.json.JSONObject;
 
 import java.io.*;
+import java.util.stream.Collectors;
 
 @WebServlet(name="authentication",urlPatterns={"/authentication"})
 public class Authentication extends HttpServlet {
@@ -22,17 +24,33 @@ public class Authentication extends HttpServlet {
         User thirdUser = new User("micio","maimi","hamzamaimi0901@gmail.com","laMiaPassword");
         User[] utenti = {firstUser, secondUser, thirdUser};
 
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityTransaction entityTransaction = entityManager.getTransaction();
+        entityTransaction.begin();
+        entityManager.persist(utenti[0]);
+        entityTransaction.commit();
+        entityManager.close();
 
-        for(int i = 0; i< utenti.length; i++) {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            EntityTransaction entityTransaction = entityManager.getTransaction();
-            entityTransaction.begin();
-            entityManager.persist(utenti[i]);
-            entityTransaction.commit();
-            entityManager.close();
-        }
         entityManagerFactory.close();
         PrintWriter out = response.getWriter();
         out.println("User has been created");
+    }
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String bodyParameters = request.getReader().lines().collect(Collectors.joining());
+        JSONObject jsonParameters = new JSONObject(bodyParameters);
+        if(!checkParameters(jsonParameters, response)){
+            return;
+        }
+    }
+
+    private boolean checkParameters(JSONObject jsonParameters, HttpServletResponse response) {
+        String name = jsonParameters.get("name").toString();
+        String surname = jsonParameters.get("surname").toString();
+        String password = jsonParameters.get("password").toString();
+        String email = jsonParameters.get("email").toString();
+
+        return false;
     }
 }
