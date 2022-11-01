@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@WebServlet(name="authentication",urlPatterns={"/registration"})
+@WebServlet(name="registration",urlPatterns={"/registration"})
 public class Registration extends HttpServlet {
     protected final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("dizionario_pu");
 
