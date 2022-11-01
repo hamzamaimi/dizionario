@@ -19,9 +19,9 @@ public class User {
     private String email;
     @Column(name = "password", nullable = false)
     private String password;
-    @Column(name = "token", nullable = true)
+    @Column(name = "token")
     private String token;
-    @Column(name = "tokenCreationDate", nullable = true)
+    @Column(name = "tokenCreationDate")
     private Date tokenCreationDate;
 
 
