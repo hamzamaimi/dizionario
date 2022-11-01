@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.*;
 import java.util.List;
@@ -18,24 +19,6 @@ import java.util.stream.Collectors;
 public class Authentication extends HttpServlet {
     protected final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("dizionario_pu");
 
-    public void doGet(HttpServletRequest request,
-                      HttpServletResponse response)
-            throws ServletException, IOException {
-        User firstUser = new User("hamza","maimi","franco@gmail.com","laMiaPassword");
-        User secondUser = new User("giuseppe","maimi","hamzamaimi0901@gmail.com","laMiaPassword");
-        User thirdUser = new User("micio","maimi","hamzamaimi0901@gmail.com","laMiaPassword");
-        User[] utenti = {firstUser, secondUser, thirdUser};
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-        entityManager.persist(utenti[0]);
-        entityManager.getTransaction().commit();
-        entityManager.close();
-
-        PrintWriter out = response.getWriter();
-        out.println("User has been created");
-    }
-
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String bodyParameters = request.getReader().lines().collect(Collectors.joining());
@@ -43,6 +26,8 @@ public class Authentication extends HttpServlet {
         EntityManager em = entityManagerFactory.createEntityManager();
         String name = jsonParameters.get("name").toString();
         String surname = jsonParameters.get("surname").toString();
+        String email = jsonParameters.get("email").toString();
+        String password = jsonParameters.get("password").toString();
 
         if(name.trim().isEmpty() || surname.trim().isEmpty()){
             response.getWriter().println("name and surname are required");
@@ -52,17 +37,29 @@ public class Authentication extends HttpServlet {
             response.getWriter().println("name and surname must contain only letters");
             return;
         }
-        if(emailIsInvalid(jsonParameters.get("email").toString())){
+        if(emailIsInvalid(email)){
             response.getWriter().println("invalid email format");
             return;
         }
-        if(emailIsAlreadyInUse(jsonParameters.get("email").toString(), em)){
+        if(emailIsAlreadyInUse(email, em)){
             response.getWriter().println("email already taken");
             return;
         }
-        if(passwordIsInvalid(jsonParameters.get("password").toString())){
+        if(passwordIsInvalid(password)){
             response.getWriter().println("password obsolete");
+            return;
         }
+        persistNewUser(em, name, surname, email, password);
+        em.close();
+        response.getWriter().println("user correctly created");
+    }
+
+    private void persistNewUser(EntityManager em, String name, String surname, String email, String password) {
+        //function to compare cripted password with uncripted: BCrypt.checkpw(password, hashed)
+        String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+        em.getTransaction().begin();
+        em.persist(new User(name,surname,email,hashed));
+        em.getTransaction().commit();
     }
 
     private boolean nameOrSurnameIsInvalid(String name, String surname) {
