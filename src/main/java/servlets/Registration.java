@@ -1,7 +1,6 @@
 package servlets;
 
 import jakarta.persistence.*;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,8 +14,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@WebServlet(name="authentication",urlPatterns={"/authentication"})
-public class Authentication extends HttpServlet {
+@WebServlet(name="authentication",urlPatterns={"/registration"})
+public class Registration extends HttpServlet {
     protected final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("dizionario_pu");
 
     @Override
