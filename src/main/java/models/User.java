@@ -23,8 +23,8 @@ public class User {
     private String token;
     @Column(name = "tokenCreationDate")
     private Date tokenCreationDate;
-
-
+    @Column(name = "wrongAttempmts")
+    private int wrongAttempts = 0;
 
     public User() {}
 
@@ -34,7 +34,13 @@ public class User {
         this.email = email;
         this.password = password;
     }
+    public int getWrongAttempts() {
+        return wrongAttempts;
+    }
 
+    public void setWrongAttempts(int wrongAttempts) {
+        this.wrongAttempts = wrongAttempts;
+    }
     public Date getTokenCreationDate() {
         return tokenCreationDate;
     }

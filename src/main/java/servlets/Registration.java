@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
+import utils.SendEmail;
 
 import java.io.*;
 import java.util.List;
@@ -53,8 +54,9 @@ public class Registration extends HttpServlet {
         response.getWriter().println("user correctly created");
     }
 
-    private void persistNewUser(EntityManager em, String name, String surname, String email, String password) {
+    private void persistNewUser(EntityManager em, String name, String surname, String email, String password) throws IOException {
         //function to compare cripted password with uncripted: BCrypt.checkpw(password, hashed)
+        SendEmail.sendNewEmail("hamzamaimi0901@gmail.com", "ciao", "hola");
         String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
         em.getTransaction().begin();
         em.persist(new User(name,surname,email,hashed));
