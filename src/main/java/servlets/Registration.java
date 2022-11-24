@@ -8,12 +8,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
+import utils.ProjectUtils;
 import utils.SendEmail;
 
 import java.io.*;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static utils.ProjectUtils.PROJECT_NAME;
 
 @WebServlet(name="registration",urlPatterns={"/registration"})
 public class Registration extends HttpServlet {
@@ -56,11 +59,21 @@ public class Registration extends HttpServlet {
 
     private void persistNewUser(EntityManager em, String name, String surname, String email, String password) throws IOException {
         //function to compare cripted password with uncripted: BCrypt.checkpw(password, hashed)
-        SendEmail.sendNewEmail("hamzamaimi0901@gmail.com", "ciao", "hola");
         String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
         em.getTransaction().begin();
-        em.persist(new User(name,surname,email,hashed));
+        User user = new User(name,surname,email,hashed);
+        em.persist(user);
         em.getTransaction().commit();
+        SendEmail.sendNewEmail(email, PROJECT_NAME+" ATTIVA L'ACCOUNT",
+                "QUESTO È IL TUO TOKEN DI VALIDAZIONE: "+ generateAndPersistRegistrationToken(user, em));
+    }
+
+    private String generateAndPersistRegistrationToken(User user, EntityManager em) {
+        String registrationToken = user.getId() + ProjectUtils.generateRandomString(7);
+        em.getTransaction().begin();
+        user.setToken(registrationToken);
+        em.getTransaction().commit();
+        return  registrationToken;
     }
 
     private boolean nameOrSurnameIsInvalid(String name, String surname) {

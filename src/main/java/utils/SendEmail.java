@@ -3,9 +3,6 @@ package utils;
 import javax.mail.*;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Properties;
 
@@ -23,12 +20,7 @@ public class SendEmail {
         props.put("mail.smtp.socketFactory.port", "465");
         props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 
-        Authenticator authenticator = new javax.mail.Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(emailServer, emailPassword);
-            }
-        };
-        Session session = Session.getInstance(props,authenticator);
+        Session session = Session.getInstance(props);
 
         try{
             MimeMessage msg = new MimeMessage(session);
