@@ -37,7 +37,7 @@ public class SendEmail {
             msg.setSubject(subject);
             msg.setSentDate(new Date());
             msg.setText(emailContent);
-//            Transport.send(msg, "me@example.com", "my-password");
+            Transport.send(msg, emailServer, emailPassword);
             return true;
         } catch (MessagingException mex) {
             System.out.println("send failed, exception: " + mex);
