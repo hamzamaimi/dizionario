@@ -19,12 +19,17 @@ public class User {
     private String email;
     @Column(name = "password", nullable = false)
     private String password;
-    @Column(name = "token")
-    private String token;
+    @Column(name = "authToken")
+    private String authToken;
     @Column(name = "tokenCreationDate")
     private Date tokenCreationDate;
-    @Column(name = "wrongAttempmts")
+    @Column(name = "wrongAttempts")
     private int wrongAttempts = 0;
+
+    @Column(name = "activationCode")
+    private String activationCode;
+    @Column(name = "isActive", nullable = false)
+    private boolean isActive = false;
 
     public User() {}
 
@@ -34,6 +39,14 @@ public class User {
         this.email = email;
         this.password = password;
     }
+    public String getActivationCode() {return activationCode;}
+
+    public void setActivationCode(String activationCode) {this.activationCode = activationCode;}
+
+    public boolean isActive() {return isActive;}
+
+    public void setIsActive(boolean active) {isActive = active;}
+
     public int getWrongAttempts() {
         return wrongAttempts;
     }
@@ -49,12 +62,12 @@ public class User {
         this.tokenCreationDate = tokenCreationDate;
     }
 
-    public String getToken() {
-        return token;
+    public String getAuthToken() {
+        return authToken;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setAuthToken(String token) {
+        this.authToken = token;
     }
 
     public String getName() {

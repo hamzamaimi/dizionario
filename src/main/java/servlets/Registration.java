@@ -24,20 +24,34 @@ public class Registration extends HttpServlet {
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //GET DATA FROM CLIENT
         String bodyParameters = request.getReader().lines().collect(Collectors.joining());
         JSONObject jsonParameters = new JSONObject(bodyParameters);
         EntityManager em = entityManagerFactory.createEntityManager();
+
+        //MAPPING DATA FROM CLIENT
         String name = jsonParameters.get("name").toString();
         String surname = jsonParameters.get("surname").toString();
         String email = jsonParameters.get("email").toString();
         String password = jsonParameters.get("password").toString();
 
+        //SET RESPONSE TYPE
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        JSONObject jsonObject = new JSONObject();
+        PrintWriter out = response.getWriter();
+
+
         if(name.trim().isEmpty() || surname.trim().isEmpty()){
-            response.getWriter().println("name and surname are required");
+            jsonObject.put("error", "name and surname are required");
+            out.print(jsonObject);
+            out.flush();
             return;
         }
         if(nameOrSurnameIsInvalid(name, surname)){
-            response.getWriter().println("name and surname must contain only letters");
+            jsonObject.put("error", "name and surname must contain only letters");
+            out.print(jsonObject);
+            out.flush();
             return;
         }
         if(emailIsInvalid(email)){
@@ -45,19 +59,33 @@ public class Registration extends HttpServlet {
             return;
         }
         if(emailIsAlreadyInUse(email, em)){
-            response.getWriter().println("email already taken");
+            jsonObject.put("error", "email already taken");
+            out.print(jsonObject);
+            out.flush();
             return;
         }
         if(passwordIsInvalid(password)){
-            response.getWriter().println("password obsolete");
+            jsonObject.put("error", "password obsolete");
+            out.print(jsonObject);
+            out.flush();
             return;
         }
-        persistNewUser(em, name, surname, email, password);
+        User currentUser = persistNewUser(em, name, surname, email, password);
+        persistAuthToken(ProjectUtils.createToken(String.valueOf(currentUser.getId())), currentUser, em);
         em.close();
-        response.getWriter().println("user correctly created");
+        jsonObject.put("success", "user correctly created");
+        jsonObject.put("authToken", currentUser.getAuthToken());
+        out.print(jsonObject);
+        out.flush();
     }
 
-    private void persistNewUser(EntityManager em, String name, String surname, String email, String password) throws IOException {
+    private void persistAuthToken(String authToken, User currentUser, EntityManager em) {
+        em.getTransaction().begin();
+        currentUser.setAuthToken(authToken);
+        em.getTransaction().commit();
+    }
+
+    private User persistNewUser(EntityManager em, String name, String surname, String email, String password) throws IOException {
         //function to compare cripted password with uncripted: BCrypt.checkpw(password, hashed)
         String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
         em.getTransaction().begin();
@@ -65,15 +93,16 @@ public class Registration extends HttpServlet {
         em.persist(user);
         em.getTransaction().commit();
         SendEmail.sendNewEmail(email, PROJECT_NAME+" ATTIVA L'ACCOUNT",
-                "QUESTO È IL TUO TOKEN DI VALIDAZIONE: "+ generateAndPersistRegistrationToken(user, em));
+                "QUESTO È IL TUO TOKEN DI VALIDAZIONE: "+ generateAndPersistActivationCode(user, em));
+        return user;
     }
 
-    private String generateAndPersistRegistrationToken(User user, EntityManager em) {
-        String registrationToken = user.getId() + ProjectUtils.generateRandomString(7);
+    private String generateAndPersistActivationCode(User user, EntityManager em) {
+        String activationCode = ProjectUtils.generateRandomString(7, String.valueOf(user.getId()));
         em.getTransaction().begin();
-        user.setToken(registrationToken);
+        user.setActivationCode(activationCode);
         em.getTransaction().commit();
-        return  registrationToken;
+        return  activationCode;
     }
 
     private boolean nameOrSurnameIsInvalid(String name, String surname) {
