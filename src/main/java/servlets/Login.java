@@ -47,8 +47,23 @@ public class Login extends HttpServlet {
             return;
         }
 
-        Optional<User> optionalUser = ProjectUtils.getUserFromEmailAndPassword(email, password, em);
+        Optional<User> optionalUser = ProjectUtils.getUserFromEmail(email, em);
 
+        if(!optionalUser.isPresent()){
+            jsonObjectResponse.put("error", "Account does not exist");
+            out.print(jsonObjectResponse);
+            out.flush();
+            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+            return;
+        }
 
+        if(!isPasswordCorrect(optionalUser.get(), password, em));
+
+    }
+
+    private boolean isPasswordCorrect(User user, String password, EntityManager em) {
+//    TO IMPLEMENT
+//        BCrypt.checkpw("DizionarioOnlineJava2022.", result.get().getPassword());
+        return false;
     }
 }

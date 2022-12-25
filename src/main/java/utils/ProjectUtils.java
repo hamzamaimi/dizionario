@@ -91,11 +91,10 @@ public class ProjectUtils {
         return  activationCode;
     }
 
-    public static Optional<User> getUserFromEmailAndPassword(String email, String password, EntityManager em) {
+    public static Optional<User> getUserFromEmail(String email, EntityManager em) {
         em.getTransaction().begin();
-        Optional result = em.createQuery("FROM User u WHERE u.email = :email AND u.password = :password")
+        Optional<User> result = em.createQuery("FROM User u WHERE u.email = :email")
                 .setParameter("email", email)
-                .setParameter("password", BCrypt.hashpw(password, BCrypt.gensalt()))
                 .getResultList().stream().findFirst();
         em.getTransaction().commit();
         return result;
