@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
-import org.hibernate.Session;
 import org.json.JSONObject;
 import utils.ParametersLabels;
 import utils.ProjectUtils;
@@ -74,7 +73,7 @@ public class ActivateAccount extends HttpServlet {
     }
 
     private void setIsActiveFieldTrue(User user, EntityManager em) {
-        try(Session session = em.unwrap(Session.class);){
+        try{
             em.getTransaction().begin();
             user.setIsActive(true);
             em.getTransaction().commit();
