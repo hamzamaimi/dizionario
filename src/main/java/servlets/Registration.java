@@ -8,27 +8,25 @@ import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
+import utils.ParametersLabels;
 import utils.ProjectUtils;
 import utils.SendEmail;
 
 import java.io.*;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static utils.ProjectUtils.PROJECT_NAME;
+import static utils.ParametersLabels.PROJECT_NAME;
 
 @WebServlet(name="registration",urlPatterns={"/registration"})
 public class Registration extends HttpServlet {
-    protected final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("dizionario_pu");
-
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        //GET DATA FROM CLIENT
-        String bodyParameters = request.getReader().lines().collect(Collectors.joining());
-        JSONObject jsonParameters = new JSONObject(bodyParameters);
+        EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
+        JSONObject jsonParameters = ProjectUtils.getParameterFromJson(request);
         EntityManager em = entityManagerFactory.createEntityManager();
-
         //MAPPING DATA FROM CLIENT
         String name = jsonParameters.get("name").toString();
         String surname = jsonParameters.get("surname").toString();
@@ -70,11 +68,12 @@ public class Registration extends HttpServlet {
             out.flush();
             return;
         }
-        User currentUser = persistNewUser(em, name, surname, email, password);
+        User currentUser = persistNewUserAndSendEmail(em , name, surname, email, password);
         persistAuthToken(ProjectUtils.createToken(String.valueOf(currentUser.getId())), currentUser, em);
         em.close();
+        entityManagerFactory.close();
         jsonObject.put("success", "user correctly created");
-        jsonObject.put("authToken", currentUser.getAuthToken());
+        jsonObject.put(ParametersLabels.AUTH_TOKEN, currentUser.getAuthToken());
         out.print(jsonObject);
         out.flush();
     }
@@ -82,10 +81,11 @@ public class Registration extends HttpServlet {
     private void persistAuthToken(String authToken, User currentUser, EntityManager em) {
         em.getTransaction().begin();
         currentUser.setAuthToken(authToken);
+        currentUser.setTokenCreationDate(Date.valueOf(LocalDate.now()));
         em.getTransaction().commit();
     }
 
-    private User persistNewUser(EntityManager em, String name, String surname, String email, String password) throws IOException {
+    private User persistNewUserAndSendEmail(EntityManager em, String name, String surname, String email, String password) throws IOException {
         //function to compare cripted password with uncripted: BCrypt.checkpw(password, hashed)
         String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
         em.getTransaction().begin();
@@ -93,16 +93,8 @@ public class Registration extends HttpServlet {
         em.persist(user);
         em.getTransaction().commit();
         SendEmail.sendNewEmail(email, PROJECT_NAME+" ATTIVA L'ACCOUNT",
-                "QUESTO È IL TUO TOKEN DI VALIDAZIONE: "+ generateAndPersistActivationCode(user, em));
+                "QUESTO È IL TUO TOKEN DI VALIDAZIONE: "+ ProjectUtils.generateAndPersistActivationCode(user, em));
         return user;
-    }
-
-    private String generateAndPersistActivationCode(User user, EntityManager em) {
-        String activationCode = ProjectUtils.generateRandomString(7, String.valueOf(user.getId()));
-        em.getTransaction().begin();
-        user.setActivationCode(activationCode);
-        em.getTransaction().commit();
-        return  activationCode;
     }
 
     private boolean nameOrSurnameIsInvalid(String name, String surname) {
@@ -123,11 +115,10 @@ public class Registration extends HttpServlet {
 
     private boolean emailIsAlreadyInUse(String email, EntityManager em) {
         em.getTransaction().begin();
-        List result = em.createQuery("SELECT u FROM User u WHERE u.email = ?1")
-                .setParameter(1, email)
+        List result = em.createQuery("FROM User u WHERE u.email = :userEmail")
+                .setParameter("userEmail", email)
                 .getResultList();
         em.getTransaction().commit();
-
         return !result.isEmpty();
     }
 

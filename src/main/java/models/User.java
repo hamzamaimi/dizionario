@@ -25,7 +25,6 @@ public class User {
     private Date tokenCreationDate;
     @Column(name = "wrongAttempts")
     private int wrongAttempts = 0;
-
     @Column(name = "activationCode")
     private String activationCode;
     @Column(name = "isActive", nullable = false)
