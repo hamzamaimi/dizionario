@@ -4,8 +4,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
+import org.mindrot.jbcrypt.BCrypt;
 
 import javax.swing.text.html.Option;
 import java.io.IOException;
@@ -19,6 +21,10 @@ public class ProjectUtils {
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
+    public static void setResponseType(HttpServletResponse resp){
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+    }
     public static EntityManagerFactory getEntityManagerFactory(){
         return Persistence.createEntityManagerFactory("dizionario_pu");
     }
@@ -85,4 +91,13 @@ public class ProjectUtils {
         return  activationCode;
     }
 
+    public static Optional<User> getUserFromEmailAndPassword(String email, String password, EntityManager em) {
+        em.getTransaction().begin();
+        Optional result = em.createQuery("FROM User u WHERE u.email = :email AND u.password = :password")
+                .setParameter("email", email)
+                .setParameter("password", BCrypt.hashpw(password, BCrypt.gensalt()))
+                .getResultList().stream().findFirst();
+        em.getTransaction().commit();
+        return result;
+    }
 }

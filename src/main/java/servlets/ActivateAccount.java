@@ -16,6 +16,7 @@ import java.io.PrintWriter;
 import java.util.Optional;
 
 import static utils.ProjectUtils.closeEntityManagerFactoryAndEntityManager;
+import static utils.ProjectUtils.setResponseType;
 
 @WebServlet(name="activateAccount",urlPatterns={"/activateAccount"})
 public class ActivateAccount extends HttpServlet {
@@ -24,8 +25,7 @@ public class ActivateAccount extends HttpServlet {
         JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(request);
 
         //SET RESPONSE TYPE
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        setResponseType(response);
         JSONObject jsonObjectResponse = new JSONObject();
         PrintWriter out = response.getWriter();
 
