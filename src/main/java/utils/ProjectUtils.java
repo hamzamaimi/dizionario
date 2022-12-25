@@ -23,6 +23,17 @@ public class ProjectUtils {
         return Persistence.createEntityManagerFactory("dizionario_pu");
     }
 
+    public static void closeEntityManagerFactoryAndEntityManager(EntityManagerFactory emf, EntityManager em){
+        emf.close();
+        em.close();
+    }
+    public static void closeEntityManagerFactory(EntityManagerFactory emf){
+        emf.close();
+    }
+    public static void closeEntityManager(EntityManager em){
+        em.close();
+    }
+
     public static String generateRandomString (int l, String initialChars) {
         String alphaNumericStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ01234556789";
         StringBuilder s = new StringBuilder(l);

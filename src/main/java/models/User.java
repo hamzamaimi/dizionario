@@ -27,8 +27,8 @@ public class User {
     private int wrongAttempts = 0;
     @Column(name = "activationCode")
     private String activationCode;
-    @Column(name = "isActive", nullable = false)
-    private boolean isActive = false;
+    @Column(name = "isActive", nullable = false, columnDefinition="tinyint(1) default 0")
+    private boolean isActive;
 
     public User() {}
 

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
+import org.hibernate.Session;
 import org.json.JSONObject;
 import utils.ParametersLabels;
 import utils.ProjectUtils;
@@ -15,37 +16,72 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
 
+import static utils.ProjectUtils.closeEntityManagerFactoryAndEntityManager;
+
 @WebServlet(name="activateAccount",urlPatterns={"/activateAccount"})
 public class ActivateAccount extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
-        EntityManager em = entityManagerFactory.createEntityManager();
-
-        JSONObject jsonObject = ProjectUtils.getParameterFromJson(request);
-        String authToken = jsonObject.getString(ParametersLabels.AUTH_TOKEN);
-        String activationCode = jsonObject.getString(ParametersLabels.ACTIVATION_CODE);
-        Optional<User> optionalUser = ProjectUtils.getUserFromAuthToken(authToken, em);
+        JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(request);
 
         //SET RESPONSE TYPE
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        jsonObject = new JSONObject();
+        JSONObject jsonObjectResponse = new JSONObject();
         PrintWriter out = response.getWriter();
 
-        if(!optionalUser.isPresent()){
-            jsonObject.put("error", "authentication error");
-            out.print(jsonObject);
+        EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
+        EntityManager em = entityManagerFactory.createEntityManager();
+
+        String authToken = "";
+        String activationCode = "";
+        try {
+            authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
+            activationCode = jsonObjectRequest.getString(ParametersLabels.ACTIVATION_CODE);
+        }catch (Exception e){
+            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+            jsonObjectResponse.put("error", "authentication token or activation code is missing.");
+            out.print(jsonObjectResponse);
             out.flush();
-            em.close();
-            entityManagerFactory.close();
+            log(e.getMessage(), e);
             return;
         }
 
-        String authenticationCodeFromDb = optionalUser.get().getActivationCode();
+        Optional<User> optionalUser = ProjectUtils.getUserFromAuthToken(authToken, em);
 
-        em.close();
-        entityManagerFactory.close();
+        if(!optionalUser.isPresent()){
+            jsonObjectResponse.put("error", "authentication error");
+            out.print(jsonObjectResponse);
+            out.flush();
+            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+            return;
+        }
+
+        String activationCodeFromDb = optionalUser.get().getActivationCode();
+        if(!activationCodeFromDb.equals(activationCode)){
+            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+            jsonObjectResponse.put("error", "activation code is wrong!");
+            out.print(jsonObjectResponse);
+            out.flush();
+            return;
+        }
+
+        setIsActiveFieldTrue(optionalUser.get(), em);
+        jsonObjectResponse.put("success", "Account is been activated.");
+        out.print(jsonObjectResponse);
+        out.flush();
+        closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+    }
+
+    private void setIsActiveFieldTrue(User user, EntityManager em) {
+        try(Session session = em.unwrap(Session.class);){
+            em.getTransaction().begin();
+            user.setIsActive(true);
+            em.getTransaction().commit();
+        }catch (Exception e){
+            log(e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
     }
 
 }
