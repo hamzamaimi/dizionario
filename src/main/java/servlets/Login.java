@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
+import org.mindrot.jbcrypt.BCrypt;
+import sun.print.PrinterJobWrapper;
 import utils.ParametersLabels;
 import utils.ProjectUtils;
 
@@ -39,31 +41,42 @@ public class Login extends HttpServlet {
             email = jsonObjectRequest.getString(ParametersLabels.EMAIL);
             password = jsonObjectRequest.getString(ParametersLabels.PASSWORD);
         }catch (Exception e){
-            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
-            jsonObjectResponse.put("error", "email or password is missing.");
-            out.print(jsonObjectResponse);
-            out.flush();
-            log(e.getMessage(), e);
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out, "email or password is missing.");
             return;
         }
 
         Optional<User> optionalUser = ProjectUtils.getUserFromEmail(email, em);
 
         if(!optionalUser.isPresent()){
-            jsonObjectResponse.put("error", "Account does not exist");
-            out.print(jsonObjectResponse);
-            out.flush();
-            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out, "Email ora password is wrong");
+            return;
+        }
+        User user = optionalUser.get();
+
+        if(!isPasswordCorrect(user, password)){
+            addWrongLoginAttemptForUser(em, user);
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out, "Email ora password is wrong");
             return;
         }
 
-        if(!isPasswordCorrect(optionalUser.get(), password, em));
-
     }
 
-    private boolean isPasswordCorrect(User user, String password, EntityManager em) {
-//    TO IMPLEMENT
-//        BCrypt.checkpw("DizionarioOnlineJava2022.", result.get().getPassword());
-        return false;
+    private static void addWrongLoginAttemptForUser(EntityManager em, User user) {
+        em.getTransaction().begin();
+        user.setWrongAttempts(user.getWrongAttempts()+1);
+        em.getTransaction().commit();
+    }
+
+    private boolean isPasswordCorrect(User user, String password) {
+        return BCrypt.checkpw(password, user.getPassword());
+    }
+
+    private void responseWithErrorAndCloseEntityManagers(EntityManagerFactory entityManagerFactory,
+                                                         JSONObject jsonObjectResponse, EntityManager entityManager,
+                                                         PrintWriter out, String errorMessage){
+        jsonObjectResponse.put("error", errorMessage);
+        out.print(jsonObjectResponse);
+        out.flush();
+        closeEntityManagerFactoryAndEntityManager(entityManagerFactory, entityManager);
     }
 }
