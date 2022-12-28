@@ -61,9 +61,14 @@ public class Login extends HttpServlet {
                     AUTHENTICATION_ERROR);
             return;
         }
-        String token = user.getAuthToken();
-        Boolean accountIsActive = user.getIsActive();
 
+        closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+
+        jsonObjectResponse.put("success", "Log in done!");
+        jsonObjectResponse.put(ParametersLabels.AUTH_TOKEN, user.getAuthToken());
+        jsonObjectResponse.put("account is active", user.getIsActive());
+        out.print(jsonObjectResponse);
+        out.flush();
     }
 
     private static void addWrongLoginAttemptForUser(EntityManager em, User user) {
