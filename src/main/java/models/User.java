@@ -42,7 +42,7 @@ public class User {
 
     public void setActivationCode(String activationCode) {this.activationCode = activationCode;}
 
-    public boolean isActive() {return isActive;}
+    public boolean getIsActive() {return isActive;}
 
     public void setIsActive(boolean active) {isActive = active;}
 

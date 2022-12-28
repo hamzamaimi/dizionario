@@ -15,8 +15,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
 
-import static utils.ProjectUtils.closeEntityManagerFactoryAndEntityManager;
-import static utils.ProjectUtils.setResponseType;
+import static utils.ParametersLabels.AUTHENTICATION_ERROR;
+import static utils.ProjectUtils.*;
+
 
 @WebServlet(name="activateAccount",urlPatterns={"/activateAccount"})
 public class ActivateAccount extends HttpServlet {
@@ -38,10 +39,8 @@ public class ActivateAccount extends HttpServlet {
             authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
             activationCode = jsonObjectRequest.getString(ParametersLabels.ACTIVATION_CODE);
         }catch (Exception e){
-            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
-            jsonObjectResponse.put("error", "authentication token or activation code is missing.");
-            out.print(jsonObjectResponse);
-            out.flush();
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
+                    "authentication token or activation code is missing.");
             log(e.getMessage(), e);
             return;
         }
@@ -49,19 +48,15 @@ public class ActivateAccount extends HttpServlet {
         Optional<User> optionalUser = ProjectUtils.getUserFromAuthToken(authToken, em);
 
         if(!optionalUser.isPresent()){
-            jsonObjectResponse.put("error", "authentication error");
-            out.print(jsonObjectResponse);
-            out.flush();
-            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
+                    AUTHENTICATION_ERROR);
             return;
         }
 
         String activationCodeFromDb = optionalUser.get().getActivationCode();
         if(!activationCodeFromDb.equals(activationCode)){
-            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
-            jsonObjectResponse.put("error", "activation code is wrong!");
-            out.print(jsonObjectResponse);
-            out.flush();
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
+                    "activation code is wrong!");
             return;
         }
 
@@ -79,7 +74,6 @@ public class ActivateAccount extends HttpServlet {
             em.getTransaction().commit();
         }catch (Exception e){
             log(e.getMessage(), e);
-            throw new RuntimeException(e);
         }
     }
 

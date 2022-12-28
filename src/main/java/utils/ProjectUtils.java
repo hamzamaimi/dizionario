@@ -11,6 +11,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import javax.swing.text.html.Option;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
@@ -29,14 +30,17 @@ public class ProjectUtils {
         return Persistence.createEntityManagerFactory("dizionario_pu");
     }
 
+    public static void responseWithErrorAndCloseEntityManagers(EntityManagerFactory entityManagerFactory,
+                                                         JSONObject jsonObjectResponse, EntityManager entityManager,
+                                                         PrintWriter out, String errorMessage){
+        jsonObjectResponse.put("error", errorMessage);
+        out.print(jsonObjectResponse);
+        out.flush();
+        closeEntityManagerFactoryAndEntityManager(entityManagerFactory, entityManager);
+    }
+
     public static void closeEntityManagerFactoryAndEntityManager(EntityManagerFactory emf, EntityManager em){
         emf.close();
-        em.close();
-    }
-    public static void closeEntityManagerFactory(EntityManagerFactory emf){
-        emf.close();
-    }
-    public static void closeEntityManager(EntityManager em){
         em.close();
     }
 

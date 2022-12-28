@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static utils.ParametersLabels.PROJECT_NAME;
+import static utils.ProjectUtils.closeEntityManagerFactoryAndEntityManager;
+import static utils.ProjectUtils.responseWithErrorAndCloseEntityManagers;
 
 @WebServlet(name="registration",urlPatterns={"/registration"})
 public class Registration extends HttpServlet {
@@ -41,37 +43,36 @@ public class Registration extends HttpServlet {
 
 
         if(name.trim().isEmpty() || surname.trim().isEmpty()){
-            jsonObject.put("error", "name and surname are required");
-            out.print(jsonObject);
-            out.flush();
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObject,em,out,
+                    "name and surname are required");
             return;
         }
         if(nameOrSurnameIsInvalid(name, surname)){
-            jsonObject.put("error", "name and surname must contain only letters");
-            out.print(jsonObject);
-            out.flush();
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObject,em,out,
+                    "name and surname must contain only letters");
             return;
         }
         if(emailIsInvalid(email)){
-            response.getWriter().println("invalid email format");
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObject,em,out,
+                    "invalid email format");
             return;
         }
         if(emailIsAlreadyInUse(email, em)){
-            jsonObject.put("error", "email already taken");
-            out.print(jsonObject);
-            out.flush();
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObject,em,out,
+                    "email already taken");
             return;
         }
         if(passwordIsInvalid(password)){
-            jsonObject.put("error", "password obsolete");
-            out.print(jsonObject);
-            out.flush();
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObject,em,out,
+                    "password obsolete");
             return;
         }
+
         User currentUser = persistNewUserAndSendEmail(em , name, surname, email, password);
         persistAuthToken(ProjectUtils.createToken(String.valueOf(currentUser.getId())), currentUser, em);
-        em.close();
-        entityManagerFactory.close();
+
+        closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+
         jsonObject.put("success", "user correctly created");
         jsonObject.put(ParametersLabels.AUTH_TOKEN, currentUser.getAuthToken());
         out.print(jsonObject);

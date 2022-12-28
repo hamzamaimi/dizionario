@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
-import sun.print.PrinterJobWrapper;
 import utils.ParametersLabels;
 import utils.ProjectUtils;
 
@@ -18,6 +17,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
 
+import static utils.ParametersLabels.AUTHENTICATION_ERROR;
 import static utils.ProjectUtils.*;
 
 @WebServlet(name="login",urlPatterns={"/login"})
@@ -41,23 +41,28 @@ public class Login extends HttpServlet {
             email = jsonObjectRequest.getString(ParametersLabels.EMAIL);
             password = jsonObjectRequest.getString(ParametersLabels.PASSWORD);
         }catch (Exception e){
-            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out, "email or password is missing.");
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    "email or password is missing.");
             return;
         }
 
         Optional<User> optionalUser = ProjectUtils.getUserFromEmail(email, em);
 
         if(!optionalUser.isPresent()){
-            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out, "Email ora password is wrong");
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    AUTHENTICATION_ERROR);
             return;
         }
         User user = optionalUser.get();
 
         if(!isPasswordCorrect(user, password)){
             addWrongLoginAttemptForUser(em, user);
-            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out, "Email ora password is wrong");
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    AUTHENTICATION_ERROR);
             return;
         }
+        String token = user.getAuthToken();
+        Boolean accountIsActive = user.getIsActive();
 
     }
 
@@ -69,14 +74,5 @@ public class Login extends HttpServlet {
 
     private boolean isPasswordCorrect(User user, String password) {
         return BCrypt.checkpw(password, user.getPassword());
-    }
-
-    private void responseWithErrorAndCloseEntityManagers(EntityManagerFactory entityManagerFactory,
-                                                         JSONObject jsonObjectResponse, EntityManager entityManager,
-                                                         PrintWriter out, String errorMessage){
-        jsonObjectResponse.put("error", errorMessage);
-        out.print(jsonObjectResponse);
-        out.flush();
-        closeEntityManagerFactoryAndEntityManager(entityManagerFactory, entityManager);
     }
 }
