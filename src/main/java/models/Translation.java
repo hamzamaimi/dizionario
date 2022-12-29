@@ -9,17 +9,31 @@ public class Translation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+    @Column(name = "original_word")
     private String originalWord;
+    @Column(name = "translated_word")
     private String translatedWord;
+    @Column(name = "group_name", nullable = false)
+    private String groupName;
 
-    private String table;
 
-    public String getTable() {
-        return table;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setTable(String table) {
-        this.table = table;
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String table) {
+        this.groupName = table;
     }
 
     public String getOriginalWord() {

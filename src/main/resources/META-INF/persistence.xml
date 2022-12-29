@@ -6,8 +6,8 @@
     <persistence-unit name="dizionario_pu" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <class>models.User</class>
         <class>models.Translation</class>
+        <class>models.User</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3307/dizionario_pu"/>
@@ -20,8 +20,6 @@
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
             <property name="show_sql" value="true"/>
-            <property name="hibernate.temp.use_jdbc_metadata_defaults" value="false"/>
-            <property name="hibernate.use_sql_comments" value="true"/>
         </properties>
 
     </persistence-unit>
