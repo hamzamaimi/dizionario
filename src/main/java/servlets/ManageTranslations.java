@@ -35,20 +35,10 @@ public class ManageTranslations extends HttpServlet {
         EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
         EntityManager em = entityManagerFactory.createEntityManager();
 
-        String authToken;
-        String groupName;
-        try{
-            authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
-        }catch (Exception e){
-            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
-                    ParametersLabels.TOKEN_ERROR);
-            return;
-        }
-        try{
-            groupName = jsonObjectRequest.getString(ParametersLabels.GROUP_NAME);
-        }catch (Exception e){
-            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
-                    ParametersLabels.GROUP_NAME_ERROR);
+        String authToken = getAuthTokenFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+        String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+
+        if(authToken == null || groupName == null){
             return;
         }
 
@@ -69,8 +59,37 @@ public class ManageTranslations extends HttpServlet {
         out.flush();
     }
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    private static String getGroupNameFromReq(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse, PrintWriter out, EntityManagerFactory entityManagerFactory, EntityManager em) {
+        String groupName = null;
+        try{
+            groupName = jsonObjectRequest.getString(ParametersLabels.GROUP_NAME);
+        }catch (Exception e){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    ParametersLabels.GROUP_NAME_ERROR);
+        }
+        return groupName;
+    }
 
+    private static String getAuthTokenFromReq(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse, PrintWriter out, EntityManagerFactory entityManagerFactory, EntityManager em) {
+       String authToken = null;
+        try{
+            authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
+        }catch (Exception e){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    ParametersLabels.TOKEN_ERROR);
+        }
+        return authToken;
+    }
+
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
+        if(jsonObjectRequest.has("wordId")){
+            doUpdate(req, resp);
+        }
+
+    }
+
+    private void doUpdate(HttpServletRequest req, HttpServletResponse resp) {
     }
 
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
