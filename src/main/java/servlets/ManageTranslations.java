@@ -59,6 +59,59 @@ public class ManageTranslations extends HttpServlet {
         out.flush();
     }
 
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
+
+        //SET RESPONSE TYPE
+        setResponseType(resp);
+        JSONObject jsonObjectResponse = new JSONObject();
+
+        PrintWriter out = resp.getWriter();
+
+        EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
+        EntityManager em = entityManagerFactory.createEntityManager();
+
+        String authToken = getAuthTokenFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+        String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+
+        if(authToken == null || groupName == null){
+            return;
+        }
+
+        Optional<User> optionalUser = getUserFromAuthToken(authToken, em);
+        if(!optionalUser.isPresent()){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    ParametersLabels.TOKEN_ERROR);
+            return;
+        }
+
+        if(jsonObjectRequest.has("wordId")){
+            doUpdate(jsonObjectRequest, jsonObjectResponse);
+            return;
+        }
+
+        String originalWord = jsonObjectRequest.getString("original_word");
+        String translatedWord = jsonObjectRequest.getString("translated_word");
+
+        if(originalWord.trim().isEmpty() || translatedWord.trim().isEmpty()){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    "words error");
+            return;
+        }
+
+        saveNewTranslation(originalWord, translatedWord,groupName, optionalUser.get(), em);
+
+        closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+
+        jsonObjectResponse.put("success", "translation correctly added!");
+        out.print(jsonObjectResponse);
+        out.flush();
+    }
+
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    }
+
     private static String getGroupNameFromReq(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse, PrintWriter out, EntityManagerFactory entityManagerFactory, EntityManager em) {
         String groupName = null;
         try{
@@ -71,7 +124,7 @@ public class ManageTranslations extends HttpServlet {
     }
 
     private static String getAuthTokenFromReq(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse, PrintWriter out, EntityManagerFactory entityManagerFactory, EntityManager em) {
-       String authToken = null;
+        String authToken = null;
         try{
             authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
         }catch (Exception e){
@@ -79,21 +132,6 @@ public class ManageTranslations extends HttpServlet {
                     ParametersLabels.TOKEN_ERROR);
         }
         return authToken;
-    }
-
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
-        if(jsonObjectRequest.has("wordId")){
-            doUpdate(req, resp);
-        }
-
-    }
-
-    private void doUpdate(HttpServletRequest req, HttpServletResponse resp) {
-    }
-
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
     }
 
     private List<Translation> getTranslationsFromDb(User user, EntityManager em, String groupName) {
@@ -104,5 +142,18 @@ public class ManageTranslations extends HttpServlet {
         return query.getResultList();
     }
 
+    private void saveNewTranslation(String originalWord, String translatedWord, String groupName, User user, EntityManager em) {
+        em.getTransaction().begin();
 
+        Translation translation = new Translation();
+        translation.setGroupName(groupName);
+        translation.setUserId(user.getId());
+        translation.setOriginalWord(originalWord);
+        translation.setTranslatedWord(translatedWord);
+
+        em.persist(translation);
+        em.getTransaction().commit();
+    }
+    private void doUpdate(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse) {
+    }
 }
