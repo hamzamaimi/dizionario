@@ -86,12 +86,13 @@ public class ManageTranslations extends HttpServlet {
         }
 
         if(jsonObjectRequest.has("wordId")){
-            doUpdate(jsonObjectRequest, jsonObjectResponse);
+            doUpdate(jsonObjectRequest, jsonObjectResponse, out, em, optionalUser.get(), entityManagerFactory);
+            closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
             return;
         }
 
-        String originalWord = jsonObjectRequest.getString("original_word");
-        String translatedWord = jsonObjectRequest.getString("translated_word");
+        String originalWord = jsonObjectRequest.getString(ParametersLabels.ORIGINAL_WORD);
+        String translatedWord = jsonObjectRequest.getString(ParametersLabels.TRANSLATED_WORD);
 
         if(originalWord.trim().isEmpty() || translatedWord.trim().isEmpty()){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
@@ -106,6 +107,36 @@ public class ManageTranslations extends HttpServlet {
         jsonObjectResponse.put("success", "translation correctly added!");
         out.print(jsonObjectResponse);
         out.flush();
+    }
+
+    private void doUpdate(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse, PrintWriter out, EntityManager em, User user, EntityManagerFactory entityManagerFactory) {
+        String originalWord = jsonObjectRequest.getString(ParametersLabels.ORIGINAL_WORD);
+        String translatedWord = jsonObjectRequest.getString(ParametersLabels.TRANSLATED_WORD);
+        String wordId = jsonObjectRequest.getString(ParametersLabels.WORD_ID);
+        Long userId = user.getId();
+
+        if(!updateExistingWord(em, originalWord, translatedWord, wordId, userId)){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    "user or word not found");
+            return;
+        }
+
+        jsonObjectResponse.put("success", "update correctly done!");
+        out.print(jsonObjectResponse);
+        out.flush();
+    }
+
+    private static boolean updateExistingWord(EntityManager em, String originalWord, String translatedWord, String wordId, Long userId) {
+        em.getTransaction().begin();
+        Translation translation = em.find(Translation.class, wordId);
+        if(translation != null && translation.getUserId().equals(userId)) {
+            translation.setOriginalWord(originalWord);
+            translation.setTranslatedWord(translatedWord);
+            em.getTransaction().commit();
+            return true;
+        }
+        em.getTransaction().commit();
+        return false;
     }
 
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -153,7 +184,5 @@ public class ManageTranslations extends HttpServlet {
 
         em.persist(translation);
         em.getTransaction().commit();
-    }
-    private void doUpdate(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse) {
     }
 }

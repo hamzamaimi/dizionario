@@ -10,5 +10,8 @@ public class ParametersLabels {
     public static String TOKEN_ERROR = "Token Error!";
     public static String GROUP_NAME_ERROR = "Group name missing!";
     public static String GROUP_NAME = "GroupName";
+    public static String ORIGINAL_WORD = "original_word";
+    public static String TRANSLATED_WORD = "translated_word";
+    public static String WORD_ID = "wordId";
 
 }
