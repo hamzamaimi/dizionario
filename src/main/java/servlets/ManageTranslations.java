@@ -2,20 +2,24 @@ package servlets;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.TypedQuery;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import models.Translation;
+import models.User;
 import org.json.JSONObject;
 import utils.ParametersLabels;
 import utils.ProjectUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Optional;
 
-import static utils.ProjectUtils.responseWithErrorAndCloseEntityManagers;
-import static utils.ProjectUtils.setResponseType;
+import static utils.ProjectUtils.*;
 
 @WebServlet(name="manageTranslation",urlPatterns={"/manageTranslation"})
 public class ManageTranslations extends HttpServlet {
@@ -31,21 +35,38 @@ public class ManageTranslations extends HttpServlet {
         EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
         EntityManager em = entityManagerFactory.createEntityManager();
 
-        em.getTransaction().begin();
-//        Object result = em.createQuery("INSERT INTO Translation (originalWord) values ('hello')");
-        em.getTransaction().commit();
-
-
         String authToken;
+        String groupName;
         try{
             authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
         }catch (Exception e){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
-                    "Token is wrong!");
+                    ParametersLabels.TOKEN_ERROR);
+            return;
+        }
+        try{
+            groupName = jsonObjectRequest.getString(ParametersLabels.GROUP_NAME);
+        }catch (Exception e){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    ParametersLabels.GROUP_NAME_ERROR);
             return;
         }
 
-//        getTranslationsFromDb();
+        Optional<User> optionalUser = getUserFromAuthToken(authToken, em);
+        if(!optionalUser.isPresent()){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    ParametersLabels.TOKEN_ERROR);
+            return;
+        }
+
+        List<Translation> translationList = getTranslationsFromDb(optionalUser.get(), em, groupName);
+
+        jsonObjectResponse.put("success", "get request correctly executed!");
+        jsonObjectResponse.put("translations", translationList);
+
+        closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
+        out.print(jsonObjectResponse);
+        out.flush();
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -56,7 +77,13 @@ public class ManageTranslations extends HttpServlet {
 
     }
 
-
+    private List<Translation> getTranslationsFromDb(User user, EntityManager em, String groupName) {
+        TypedQuery<Translation> query = em.createQuery(
+                "SELECT e FROM Translation e WHERE e.groupName = ?1 AND e.userId = ?2" , Translation.class);
+        query.setParameter(1, groupName);
+        query.setParameter(2, user.getId());
+        return query.getResultList();
+    }
 
 
 }
