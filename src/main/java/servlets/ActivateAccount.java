@@ -56,9 +56,14 @@ public class ActivateAccount extends HttpServlet {
         String activationCodeFromDb = optionalUser.get().getActivationCode();
         if(!activationCodeFromDb.equals(activationCode)){
             int wrongAttempts = optionalUser.get().getWrongAttempts();
+            em.getTransaction().begin();
             optionalUser.get().setWrongAttempts(wrongAttempts + 1);
+            em.getTransaction().commit();
             if(wrongAttempts > 4){
                 ProjectUtils.generateAndPersistActivationCode(optionalUser.get(), em);
+                em.getTransaction().begin();
+                optionalUser.get().setWrongAttempts(0);
+                em.getTransaction().commit();
                 responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
                         "activation code has been changed!");
                 return;
