@@ -18,9 +18,8 @@ import java.util.Optional;
 import static utils.ParametersLabels.AUTHENTICATION_ERROR;
 import static utils.ProjectUtils.*;
 
-
-@WebServlet(name="activateAccount",urlPatterns={"/activateAccount"})
-public class ActivateAccount extends HttpServlet {
+@WebServlet(name="resendActivationCode",urlPatterns={"/resendActivationCode"})
+public class resendActivationCode extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(request);
@@ -55,14 +54,6 @@ public class ActivateAccount extends HttpServlet {
 
         String activationCodeFromDb = optionalUser.get().getActivationCode();
         if(!activationCodeFromDb.equals(activationCode)){
-            int wrongAttempts = optionalUser.get().getWrongAttempts();
-            optionalUser.get().setWrongAttempts(wrongAttempts + 1);
-            if(wrongAttempts > 4){
-                ProjectUtils.generateAndPersistActivationCode(optionalUser.get(), em);
-                responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                        "activation code has been changed!");
-                return;
-            }
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
                     "activation code is wrong!");
             return;
@@ -74,15 +65,4 @@ public class ActivateAccount extends HttpServlet {
         out.flush();
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
     }
-
-    private void setIsActiveFieldTrue(User user, EntityManager em) {
-        try{
-            em.getTransaction().begin();
-            user.setIsActive(true);
-            em.getTransaction().commit();
-        }catch (Exception e){
-            log(e.getMessage(), e);
-        }
-    }
-
 }
