@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
 
-import static utils.ParametersLabels.AUTHENTICATION_ERROR;
+import static utils.ParametersLabels.*;
 import static utils.ProjectUtils.*;
 
 
@@ -40,7 +40,7 @@ public class ActivateAccount extends HttpServlet {
             activationCode = jsonObjectRequest.getString(ParametersLabels.ACTIVATION_CODE);
         }catch (Exception e){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                    "authentication token or activation code is missing.");
+                    AUT_TOK_OR_ACTIVATION_CODE_MISSING);
             log(e.getMessage(), e);
             return;
         }
@@ -69,12 +69,12 @@ public class ActivateAccount extends HttpServlet {
                 return;
             }
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                    "activation code is wrong!");
+                    ACTIVATION_CODE_WRONG);
             return;
         }
 
         setIsActiveFieldTrue(optionalUser.get(), em);
-        jsonObjectResponse.put("success", "Account is been activated.");
+        jsonObjectResponse.put("success", ACCOUNT_ACTIVATED);
         out.print(jsonObjectResponse);
         out.flush();
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);

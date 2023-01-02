@@ -10,12 +10,13 @@ import models.User;
 import org.json.JSONObject;
 import utils.ParametersLabels;
 import utils.ProjectUtils;
+import utils.SendEmail;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
 
-import static utils.ParametersLabels.AUTHENTICATION_ERROR;
+import static utils.ParametersLabels.*;
 import static utils.ProjectUtils.*;
 
 @WebServlet(name="resendActivationCode",urlPatterns={"/resendActivationCode"})
@@ -33,13 +34,11 @@ public class resendActivationCode extends HttpServlet {
         EntityManager em = entityManagerFactory.createEntityManager();
 
         String authToken = "";
-        String activationCode = "";
         try {
             authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
-            activationCode = jsonObjectRequest.getString(ParametersLabels.ACTIVATION_CODE);
         }catch (Exception e){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                    "authentication token or activation code is missing.");
+                    AUT_TOK_OR_ACTIVATION_CODE_MISSING);
             log(e.getMessage(), e);
             return;
         }
@@ -52,15 +51,11 @@ public class resendActivationCode extends HttpServlet {
             return;
         }
 
-        String activationCodeFromDb = optionalUser.get().getActivationCode();
-        if(!activationCodeFromDb.equals(activationCode)){
-            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                    "activation code is wrong!");
-            return;
-        }
+        SendEmail.sendNewEmail(optionalUser.get().getEmail(), PROJECT_NAME+" ATTIVA L'ACCOUNT",
+                "QUESTO È IL TUO TOKEN DI VALIDAZIONE: "+ optionalUser.get().getActivationCode());
 
-        setIsActiveFieldTrue(optionalUser.get(), em);
-        jsonObjectResponse.put("success", "Account is been activated.");
+
+        jsonObjectResponse.put("success", EMAIL_SENT);
         out.print(jsonObjectResponse);
         out.flush();
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);

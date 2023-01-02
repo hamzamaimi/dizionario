@@ -14,5 +14,9 @@ public class ParametersLabels {
     public static String TRANSLATED_WORD = "translated_word";
     public static String WORD_ID = "wordId";
     public static String USER_WORLD_ERROR = "user or word not found";
+    public static String AUT_TOK_OR_ACTIVATION_CODE_MISSING = "authentication token or activation code is missing.";
+    public static String ACTIVATION_CODE_WRONG = "activation code is wrong!";
+    public static String ACCOUNT_ACTIVATED = "account is been activated.";
+    public static String EMAIL_SENT = "email has been sent.";
 
 }
