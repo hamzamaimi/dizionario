@@ -13,5 +13,6 @@ public class ParametersLabels {
     public static String ORIGINAL_WORD = "original_word";
     public static String TRANSLATED_WORD = "translated_word";
     public static String WORD_ID = "wordId";
+    public static String USER_WORLD_ERROR = "user or word not found";
 
 }

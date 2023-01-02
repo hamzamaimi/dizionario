@@ -19,10 +19,12 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
 
+import static utils.ParametersLabels.USER_WORLD_ERROR;
 import static utils.ProjectUtils.*;
 
 @WebServlet(name="manageTranslation",urlPatterns={"/manageTranslation"})
 public class ManageTranslations extends HttpServlet {
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
 
@@ -59,6 +61,7 @@ public class ManageTranslations extends HttpServlet {
         out.flush();
     }
 
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
 
@@ -109,6 +112,53 @@ public class ManageTranslations extends HttpServlet {
         out.flush();
     }
 
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
+
+        //SET RESPONSE TYPE
+        setResponseType(resp);
+        JSONObject jsonObjectResponse = new JSONObject();
+
+        PrintWriter out = resp.getWriter();
+
+        EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
+        EntityManager em = entityManagerFactory.createEntityManager();
+
+        String authToken = getAuthTokenFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+        String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+        String wordId = jsonObjectRequest.getString(ParametersLabels.WORD_ID);
+
+        Optional<User> optionalUser = getUserFromAuthToken(authToken, em);
+        if(!optionalUser.isPresent()){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    ParametersLabels.TOKEN_ERROR);
+            return;
+        }
+
+        if(!deleteWordIfExist(optionalUser.get(), groupName, wordId, em)){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    USER_WORLD_ERROR);
+            return;
+        }
+
+        jsonObjectResponse.put("success", "delete correctly done!");
+        out.print(jsonObjectResponse);
+        out.flush();
+    }
+
+    private boolean deleteWordIfExist(User user, String groupName, String wordId, EntityManager em) {
+        em.getTransaction().begin();
+        Translation translation = em.find(Translation.class, wordId);
+        if(translation != null && translation.getUserId().equals(user.getId())) {
+            em.remove(translation);
+            em.getTransaction().commit();
+            return true;
+        }
+        em.getTransaction().commit();
+        return false;
+    }
+
     private void doUpdate(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse, PrintWriter out, EntityManager em, User user, EntityManagerFactory entityManagerFactory) {
         String originalWord = jsonObjectRequest.getString(ParametersLabels.ORIGINAL_WORD);
         String translatedWord = jsonObjectRequest.getString(ParametersLabels.TRANSLATED_WORD);
@@ -117,7 +167,7 @@ public class ManageTranslations extends HttpServlet {
 
         if(!updateExistingWord(em, originalWord, translatedWord, wordId, userId)){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
-                    "user or word not found");
+                    USER_WORLD_ERROR);
             return;
         }
 
@@ -137,10 +187,6 @@ public class ManageTranslations extends HttpServlet {
         }
         em.getTransaction().commit();
         return false;
-    }
-
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
     }
 
     private static String getGroupNameFromReq(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse, PrintWriter out, EntityManagerFactory entityManagerFactory, EntityManager em) {
