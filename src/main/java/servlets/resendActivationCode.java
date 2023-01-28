@@ -47,11 +47,13 @@ public class resendActivationCode extends HttpServlet {
             return;
         }
 
-        SendEmail.sendNewEmail(optionalUser.get().getEmail(), PROJECT_NAME+" ATTIVA L'ACCOUNT",
+        String userEmail = optionalUser.get().getEmail();
+        SendEmail.sendNewEmail(userEmail, PROJECT_NAME+" ATTIVA L'ACCOUNT",
                 "QUESTO È IL TUO TOKEN DI VALIDAZIONE: "+ optionalUser.get().getActivationCode());
 
 
         jsonObjectResponse.put("success", EMAIL_SENT);
+        jsonObjectResponse.put("email", userEmail);
         out.print(jsonObjectResponse);
         out.flush();
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
