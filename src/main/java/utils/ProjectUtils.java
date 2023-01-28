@@ -3,6 +3,7 @@ package utils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
@@ -102,5 +103,12 @@ public class ProjectUtils {
                 .getResultList().stream().findFirst();
         em.getTransaction().commit();
         return result;
+    }
+
+    public static Cookie getCookie(String cookiesName, String cookiesValue, String cookiesDomain, boolean httpOnly) {
+        Cookie cookie = new Cookie(cookiesName,cookiesValue);
+        cookie.setDomain(cookiesDomain);
+        cookie.setHttpOnly(httpOnly);
+        return cookie;
     }
 }

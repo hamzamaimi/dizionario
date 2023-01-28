@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ import java.io.PrintWriter;
 import java.util.Optional;
 
 import static utils.ParametersLabels.AUTHENTICATION_ERROR;
+import static utils.ParametersLabels.FRONT_END_DOMAIN;
 import static utils.ProjectUtils.*;
 
 @WebServlet(name="login",urlPatterns={"/login"})
@@ -65,8 +67,12 @@ public class Login extends HttpServlet {
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
 
         jsonObjectResponse.put("success", "Log in done!");
-        jsonObjectResponse.put(ParametersLabels.AUTH_TOKEN, user.getAuthToken());
         jsonObjectResponse.put("account is active", user.getIsActive());
+
+        //SET HTTP-ONLY COOKIE
+        Cookie cookie = getCookie("jwt", user.getAuthToken(), FRONT_END_DOMAIN, true);
+        resp.addCookie(cookie);
+
         out.print(jsonObjectResponse);
         out.flush();
     }

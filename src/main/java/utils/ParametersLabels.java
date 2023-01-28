@@ -1,6 +1,8 @@
 package utils;
 
 public class ParametersLabels {
+    public static String FRONT_END_DOMAIN = "localhost";
+    public static String FRONT_END_COMPLETE_DOMAIN = "http://localhost:3000";
     public static String PASSWORD = "password";
     public static String EMAIL = "email";
     public static String ACTIVATION_CODE = "activationCode";

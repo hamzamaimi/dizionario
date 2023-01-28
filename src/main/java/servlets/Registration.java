@@ -2,6 +2,7 @@ package servlets;
 
 import jakarta.persistence.*;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,9 +19,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static utils.ParametersLabels.FRONT_END_DOMAIN;
 import static utils.ParametersLabels.PROJECT_NAME;
-import static utils.ProjectUtils.closeEntityManagerFactoryAndEntityManager;
-import static utils.ProjectUtils.responseWithErrorAndCloseEntityManagers;
+import static utils.ProjectUtils.*;
 
 @WebServlet(name="registration",urlPatterns={"/registration"})
 public class Registration extends HttpServlet {
@@ -74,10 +75,15 @@ public class Registration extends HttpServlet {
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
 
         jsonObject.put("success", "user correctly created");
-        jsonObject.put(ParametersLabels.AUTH_TOKEN, currentUser.getAuthToken());
+
+        //SET HTTP-ONLY COOKIE
+        Cookie cookie = getCookie("jwt", currentUser.getAuthToken(), FRONT_END_DOMAIN, true);
+        response.addCookie(cookie);
+
         out.print(jsonObject);
         out.flush();
     }
+
 
     private void persistAuthToken(String authToken, User currentUser, EntityManager em) {
         em.getTransaction().begin();
