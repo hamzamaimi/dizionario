@@ -8,14 +8,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
-import org.mindrot.jbcrypt.BCrypt;
 
-import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -110,5 +108,10 @@ public class ProjectUtils {
         cookie.setDomain(cookiesDomain);
         cookie.setHttpOnly(httpOnly);
         return cookie;
+    }
+
+    public static String getJwtFromCookiesIfPresent(Cookie[] cookies) {
+        Optional<Cookie> jwtCookie = Arrays.stream(cookies).filter(cookie -> "jwt".equals(cookie.getName())).findFirst();
+        return jwtCookie.isPresent() ? jwtCookie.get().getValue() : "";
     }
 }

@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
 
+import static utils.ParametersLabels.AUTH_TOKEN_MISSING;
 import static utils.ParametersLabels.USER_WORLD_ERROR;
 import static utils.ProjectUtils.*;
 
@@ -125,7 +126,13 @@ public class ManageTranslations extends HttpServlet {
         EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
         EntityManager em = entityManagerFactory.createEntityManager();
 
-        String authToken = getAuthTokenFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+        String authToken = getJwtFromCookiesIfPresent(req.getCookies());
+        if("".equals(authToken)){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
+                    AUTH_TOKEN_MISSING);
+            return;
+        }
+
         String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
         String wordId = jsonObjectRequest.getString(ParametersLabels.WORD_ID);
 

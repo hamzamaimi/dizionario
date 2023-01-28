@@ -33,14 +33,19 @@ public class ActivateAccount extends HttpServlet {
         EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
         EntityManager em = entityManagerFactory.createEntityManager();
 
-        String authToken = "";
+        String authToken = getJwtFromCookiesIfPresent(request.getCookies());;
+        if("".equals(authToken)){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
+                    AUTH_TOKEN_MISSING);
+            return;
+        }
+
         String activationCode = "";
         try {
-            authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
             activationCode = jsonObjectRequest.getString(ParametersLabels.ACTIVATION_CODE);
         }catch (Exception e){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                    AUT_TOK_OR_ACTIVATION_CODE_MISSING);
+                    ACTIVATION_CODE_MISSING);
             log(e.getMessage(), e);
             return;
         }

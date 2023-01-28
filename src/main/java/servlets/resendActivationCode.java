@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import org.json.JSONObject;
-import utils.ParametersLabels;
 import utils.ProjectUtils;
 import utils.SendEmail;
 
@@ -33,13 +32,10 @@ public class resendActivationCode extends HttpServlet {
         EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
         EntityManager em = entityManagerFactory.createEntityManager();
 
-        String authToken = "";
-        try {
-            authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
-        }catch (Exception e){
+        String authToken = getJwtFromCookiesIfPresent(request.getCookies());
+        if("".equals(authToken)){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                    AUT_TOK_OR_ACTIVATION_CODE_MISSING);
-            log(e.getMessage(), e);
+                    AUTH_TOKEN_MISSING);
             return;
         }
 
@@ -60,4 +56,5 @@ public class resendActivationCode extends HttpServlet {
         out.flush();
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
     }
+
 }
