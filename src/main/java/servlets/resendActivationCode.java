@@ -43,7 +43,7 @@ public class resendActivationCode extends HttpServlet {
 
         if(!optionalUser.isPresent()){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                    AUTHENTICATION_ERROR);
+                    TOKEN_ERROR);
             return;
         }
 
