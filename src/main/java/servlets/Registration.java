@@ -75,6 +75,9 @@ public class Registration extends HttpServlet {
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
 
         jsonObject.put("success", "user correctly created");
+        jsonObject.put("userEmail", currentUser.getEmail());
+        jsonObject.put("isAccountActive", currentUser.getIsActive());
+
 
         //SET HTTP-ONLY COOKIE
         Cookie cookie = getCookie("jwt", currentUser.getAuthToken(), FRONT_END_DOMAIN, true);
