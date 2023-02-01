@@ -18,6 +18,7 @@ public class ParametersLabels {
     public static String WORD_ID = "wordId";
     public static String USER_WORLD_ERROR = "user or word not found";
     public static String ACTIVATION_CODE_MISSING = "activation code is missing.";
+    public static String USER_NOT_FOUND_ERROR = "user not found.";
     public static String AUTH_TOKEN_MISSING = "authentication token is missing.";
     public static String ACTIVATION_CODE_WRONG = "activation code is wrong!";
     public static String ACCOUNT_ACTIVATED = "account is been activated.";

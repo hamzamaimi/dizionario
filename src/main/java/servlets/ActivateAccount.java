@@ -33,7 +33,7 @@ public class ActivateAccount extends HttpServlet {
         EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
         EntityManager em = entityManagerFactory.createEntityManager();
 
-        String authToken = getJwtFromCookiesIfPresent(request.getCookies());;
+        String authToken = getJwtFromCookiesIfPresent(request.getCookies());
         if("".equals(authToken)){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
                     AUTH_TOKEN_MISSING);
@@ -54,7 +54,7 @@ public class ActivateAccount extends HttpServlet {
 
         if(!optionalUser.isPresent()){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory,jsonObjectResponse,em,out,
-                    AUTHENTICATION_ERROR);
+                    USER_NOT_FOUND_ERROR);
             return;
         }
 
