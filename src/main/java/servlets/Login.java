@@ -67,6 +67,7 @@ public class Login extends HttpServlet {
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
 
         jsonObjectResponse.put("success", "Log in done!");
+        jsonObjectResponse.put("userEmail", user.getEmail());
         jsonObjectResponse.put("isAccountActive", user.getIsActive());
 
         //SET HTTP-ONLY COOKIE
