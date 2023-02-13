@@ -16,6 +16,7 @@ import utils.ProjectUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +43,7 @@ public class ManageTranslations extends HttpServlet {
         String authToken = getJwtFromCookiesIfPresent(req.getCookies());
         String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
 
-        if(authToken == null || groupName == null){
+        if(authToken == null){
             return;
         }
 
@@ -53,7 +54,12 @@ public class ManageTranslations extends HttpServlet {
             return;
         }
 
-        List<Translation> translationList = getTranslationsFromDb(optionalUser.get(), em, groupName);
+        List<Translation> translationList;
+        if(groupName == null){
+            translationList = getAllTranslationsFromDb(optionalUser.get(), em);
+        }else {
+            translationList = getTranslationsFromDb(optionalUser.get(), em, groupName);
+        }
 
         jsonObjectResponse.put("success", "get request correctly executed!");
         jsonObjectResponse.put("translations", translationList);
@@ -224,6 +230,13 @@ public class ManageTranslations extends HttpServlet {
                 "SELECT e FROM Translation e WHERE e.groupName = ?1 AND e.userId = ?2" , Translation.class);
         query.setParameter(1, groupName);
         query.setParameter(2, user.getId());
+        return query.getResultList();
+    }
+
+    private List<Translation> getAllTranslationsFromDb(User user, EntityManager em) {
+        TypedQuery<Translation> query = em.createQuery(
+                "SELECT e FROM Translation e WHERE e.userId = ?1" , Translation.class);
+        query.setParameter(1, user.getId());
         return query.getResultList();
     }
 
