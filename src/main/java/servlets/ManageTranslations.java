@@ -22,6 +22,7 @@ import java.util.Optional;
 import static utils.ParametersLabels.AUTH_TOKEN_MISSING;
 import static utils.ParametersLabels.USER_WORLD_ERROR;
 import static utils.ProjectUtils.*;
+import static utils.ProjectUtils.getJwtFromCookiesIfPresent;
 
 @WebServlet(name="manageTranslation",urlPatterns={"/manageTranslation"})
 public class ManageTranslations extends HttpServlet {
@@ -38,7 +39,7 @@ public class ManageTranslations extends HttpServlet {
         EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
         EntityManager em = entityManagerFactory.createEntityManager();
 
-        String authToken = getAuthTokenFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+        String authToken = getJwtFromCookiesIfPresent(req.getCookies());
         String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
 
         if(authToken == null || groupName == null){
@@ -75,7 +76,7 @@ public class ManageTranslations extends HttpServlet {
         EntityManagerFactory entityManagerFactory = ProjectUtils.getEntityManagerFactory();
         EntityManager em = entityManagerFactory.createEntityManager();
 
-        String authToken = getAuthTokenFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+        String authToken = getJwtFromCookiesIfPresent(req.getCookies());
         String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
 
         if(authToken == null || groupName == null){
