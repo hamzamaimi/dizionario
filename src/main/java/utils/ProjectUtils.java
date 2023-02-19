@@ -83,7 +83,11 @@ public class ProjectUtils {
 
     public static JSONObject getParameterFromJson(HttpServletRequest request) throws IOException {
         String bodyParameters = request.getReader().lines().collect(Collectors.joining());
-        return new JSONObject(bodyParameters);
+        if("".equals(bodyParameters)){
+            return new JSONObject();
+        }else {
+            return new JSONObject(bodyParameters);
+        }
     }
 
     public static String generateAndPersistActivationCode(User user, EntityManager em) {
