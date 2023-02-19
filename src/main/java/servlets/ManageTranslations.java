@@ -17,6 +17,7 @@ import utils.ProjectUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static utils.ParametersLabels.AUTH_TOKEN_MISSING;
@@ -28,8 +29,6 @@ import static utils.ProjectUtils.getJwtFromCookiesIfPresent;
 public class ManageTranslations extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
-
         //SET RESPONSE TYPE
         setResponseType(resp);
         JSONObject jsonObjectResponse = new JSONObject();
@@ -40,10 +39,11 @@ public class ManageTranslations extends HttpServlet {
         EntityManager em = entityManagerFactory.createEntityManager();
 
         String authToken = getJwtFromCookiesIfPresent(req.getCookies());
-        String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
+        String groupName = req.getParameter(ParametersLabels.GROUP_NAME);
 
-        if(authToken == null){
-            return;
+        if(Objects.isNull(authToken) || Objects.isNull(groupName)){
+            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
+                    ParametersLabels.TOKEN_ERROR + " ors " +ParametersLabels.GROUP_NAME_ERROR);
         }
 
         Optional<User> optionalUser = getUserFromAuthToken(authToken, em);
@@ -67,6 +67,7 @@ public class ManageTranslations extends HttpServlet {
         out.print(jsonObjectResponse);
         out.flush();
     }
+
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
