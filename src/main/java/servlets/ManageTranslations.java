@@ -53,7 +53,7 @@ public class ManageTranslations extends HttpServlet {
         }
 
         List<Translation> translationList;
-        if(groupName == null){
+        if(groupName.isEmpty()){
             translationList = getAllTranslationsFromDb(optionalUser.get(), em);
         }else {
             translationList = getTranslationsFromDb(optionalUser.get(), em, groupName);
