@@ -3,7 +3,6 @@ package servlets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.TypedQuery;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +27,7 @@ import static utils.ProjectUtils.getJwtFromCookiesIfPresent;
 @WebServlet(name="manageTranslation",urlPatterns={"/manageTranslation"})
 public class ManageTranslations extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         //SET RESPONSE TYPE
         setResponseType(resp);
         JSONObject jsonObjectResponse = new JSONObject();
@@ -43,7 +42,7 @@ public class ManageTranslations extends HttpServlet {
 
         if(Objects.isNull(authToken) || Objects.isNull(groupName)){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
-                    ParametersLabels.TOKEN_ERROR + " ors " +ParametersLabels.GROUP_NAME_ERROR);
+                    ParametersLabels.TOKEN_ERROR + " or " +ParametersLabels.GROUP_NAME_ERROR);
         }
 
         Optional<User> optionalUser = getUserFromAuthToken(authToken, em);
@@ -70,7 +69,7 @@ public class ManageTranslations extends HttpServlet {
 
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
 
         //SET RESPONSE TYPE
@@ -121,7 +120,7 @@ public class ManageTranslations extends HttpServlet {
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JSONObject jsonObjectRequest = ProjectUtils.getParameterFromJson(req);
 
         //SET RESPONSE TYPE
@@ -140,7 +139,6 @@ public class ManageTranslations extends HttpServlet {
             return;
         }
 
-        String groupName = getGroupNameFromReq(jsonObjectRequest, jsonObjectResponse, out, entityManagerFactory, em);
         String wordId = jsonObjectRequest.getString(ParametersLabels.WORD_ID);
 
         Optional<User> optionalUser = getUserFromAuthToken(authToken, em);
@@ -150,7 +148,7 @@ public class ManageTranslations extends HttpServlet {
             return;
         }
 
-        if(!deleteWordIfExist(optionalUser.get(), groupName, wordId, em)){
+        if(!deleteWordIfExist(optionalUser.get(), wordId, em)){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
                     USER_WORLD_ERROR);
             return;
@@ -161,7 +159,7 @@ public class ManageTranslations extends HttpServlet {
         out.flush();
     }
 
-    private boolean deleteWordIfExist(User user, String groupName, String wordId, EntityManager em) {
+    private boolean deleteWordIfExist(User user, String wordId, EntityManager em) {
         em.getTransaction().begin();
         Translation translation = em.find(Translation.class, wordId);
         if(translation != null && translation.getUserId().equals(user.getId())) {
@@ -212,17 +210,6 @@ public class ManageTranslations extends HttpServlet {
                     ParametersLabels.GROUP_NAME_ERROR);
         }
         return groupName;
-    }
-
-    private static String getAuthTokenFromReq(JSONObject jsonObjectRequest, JSONObject jsonObjectResponse, PrintWriter out, EntityManagerFactory entityManagerFactory, EntityManager em) {
-        String authToken = null;
-        try{
-            authToken = jsonObjectRequest.getString(ParametersLabels.AUTH_TOKEN);
-        }catch (Exception e){
-            responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
-                    ParametersLabels.TOKEN_ERROR);
-        }
-        return authToken;
     }
 
     private List<Translation> getTranslationsFromDb(User user, EntityManager em, String groupName) {
