@@ -110,11 +110,12 @@ public class ManageTranslations extends HttpServlet {
             return;
         }
 
-        saveNewTranslation(originalWord, translatedWord,groupName, optionalUser.get(), em);
+        Translation translation = saveNewTranslation(originalWord, translatedWord,groupName, optionalUser.get(), em);
 
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
 
         jsonObjectResponse.put("success", "translation correctly added!");
+        jsonObjectResponse.put("wordId", translation.getId());
         out.print(jsonObjectResponse);
         out.flush();
     }
@@ -227,7 +228,7 @@ public class ManageTranslations extends HttpServlet {
         return query.getResultList();
     }
 
-    private void saveNewTranslation(String originalWord, String translatedWord, String groupName, User user, EntityManager em) {
+    private Translation saveNewTranslation(String originalWord, String translatedWord, String groupName, User user, EntityManager em) {
         em.getTransaction().begin();
 
         Translation translation = new Translation();
@@ -238,5 +239,6 @@ public class ManageTranslations extends HttpServlet {
 
         em.persist(translation);
         em.getTransaction().commit();
+        return translation;
     }
 }
