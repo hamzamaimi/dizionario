@@ -15,9 +15,11 @@ import utils.ProjectUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static utils.ParametersLabels.AUTH_TOKEN_MISSING;
 import static utils.ParametersLabels.USER_WORLD_ERROR;
@@ -61,12 +63,12 @@ public class ManageTranslations extends HttpServlet {
 
         jsonObjectResponse.put("success", "get request correctly executed!");
         jsonObjectResponse.put("translations", translationList);
+        jsonObjectResponse.put("groupNames", getAllGroupNames(translationList));
 
         closeEntityManagerFactoryAndEntityManager(entityManagerFactory, em);
         out.print(jsonObjectResponse);
         out.flush();
     }
-
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -158,6 +160,14 @@ public class ManageTranslations extends HttpServlet {
         jsonObjectResponse.put("success", "delete correctly done!");
         out.print(jsonObjectResponse);
         out.flush();
+    }
+
+    private List<String> getAllGroupNames(List<Translation> translationList) {
+        List<String> groupNames = new ArrayList<>();
+        for(Translation translation : translationList){
+            groupNames.add(translation.getGroupName());
+        }
+        return groupNames.stream().distinct().collect(Collectors.toList());
     }
 
     private boolean deleteWordIfExist(User user, String wordId, EntityManager em) {
