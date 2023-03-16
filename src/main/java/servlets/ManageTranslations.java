@@ -42,7 +42,7 @@ public class ManageTranslations extends HttpServlet {
         String authToken = getJwtFromCookiesIfPresent(req.getCookies());
         String groupName = req.getParameter(ParametersLabels.GROUP_NAME);
 
-        if(Objects.isNull(authToken) || Objects.isNull(groupName)){
+        if(Objects.isNull(authToken)){
             responseWithErrorAndCloseEntityManagers(entityManagerFactory, jsonObjectResponse, em, out,
                     ParametersLabels.TOKEN_ERROR + " or " +ParametersLabels.GROUP_NAME_ERROR);
         }
@@ -55,7 +55,7 @@ public class ManageTranslations extends HttpServlet {
         }
 
         List<Translation> translationList;
-        if(groupName.isEmpty()){
+        if(Objects.isNull(groupName) || groupName.isEmpty()){
             translationList = getAllTranslationsFromDb(optionalUser.get(), em);
         }else {
             translationList = getTranslationsFromDb(optionalUser.get(), em, groupName);
