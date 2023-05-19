@@ -2,7 +2,6 @@ package models;
 
 import jakarta.persistence.*;
 
-import java.math.BigInteger;
 import java.sql.Date;
 
 @Entity
@@ -11,69 +10,87 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false, nullable = false)
-    private int id;
-    @Column(name = "nome", nullable = false)
-    private String nome;
-    @Column(name = "cognome", nullable = false)
-    private String cognome;
-    @Column(name = "mail", nullable = false)
-    private String mail;
+    private Long id;
+    @Column(name = "name", nullable = false)
+    private String name;
+    @Column(name = "surname", nullable = false)
+    private String surname;
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
     @Column(name = "password", nullable = false)
     private String password;
-    @Column(name = "token", nullable = true)
-    private String token;
-    @Column(name = "dataCreazioneToken", nullable = true)
-    private Date dataCreazioneToken;
-
-
+    @Column(name = "authToken")
+    private String authToken;
+    @Column(name = "tokenCreationDate")
+    private Date tokenCreationDate;
+    @Column(name = "wrongAttempts")
+    private int wrongAttempts = 0;
+    @Column(name = "activationCode")
+    private String activationCode;
+    @Column(name = "isActive", nullable = false, columnDefinition="tinyint(1) default 0")
+    private boolean isActive;
 
     public User() {}
 
-    public User(String nome, String cognome, String mail, String password) {
-        this.nome = nome;
-        this.cognome = cognome;
-        this.mail = mail;
+    public User(String name, String surname, String email, String password) {
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
         this.password = password;
     }
+    public String getActivationCode() {return activationCode;}
 
-    public Date getDataCreazioneToken() {
-        return dataCreazioneToken;
+    public void setActivationCode(String activationCode) {this.activationCode = activationCode;}
+
+    public boolean getIsActive() {return isActive;}
+
+    public void setIsActive(boolean active) {isActive = active;}
+
+    public int getWrongAttempts() {
+        return wrongAttempts;
     }
 
-    public void setDataCreazioneToken(Date creazioneToken) {
-        this.dataCreazioneToken = creazioneToken;
+    public void setWrongAttempts(int wrongAttempts) {
+        this.wrongAttempts = wrongAttempts;
+    }
+    public Date getTokenCreationDate() {
+        return tokenCreationDate;
     }
 
-    public String getToken() {
-        return token;
+    public void setTokenCreationDate(Date tokenCreationDate) {
+        this.tokenCreationDate = tokenCreationDate;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public String getAuthToken() {
+        return authToken;
     }
 
-    public String getNome() {
-        return nome;
+    public void setAuthToken(String token) {
+        this.authToken = token;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
+    public String getName() {
+        return name;
     }
 
-    public String getCognome() {
-        return cognome;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setCognome(String cognome) {
-        this.cognome = cognome;
+    public String getSurname() {
+        return surname;
     }
 
-    public String getMail() {
-        return mail;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {
@@ -85,11 +102,11 @@ public class User {
     }
 
 
-    public void setId (int id) {
+    public void setId (Long id) {
         this.id = id;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 }
